@@ -1,0 +1,12 @@
+* process data as it comes; streaming
+
+* single-node computations
+
+* multi-node -> Spark
+
+* "Akka Streams is a library to process and transfer a sequence of
+   elements using bounded buffer space"
+
+* "scalaz-stream is a streaming I/O library. The design goals are
+   compositionality, expressiveness, resource safety, and speed."
+

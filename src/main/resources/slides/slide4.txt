@@ -1,0 +1,11 @@
+* common goal: compositionality
+
+* type-safe
+
+1. create a blueprint
+   - graph
+   - process
+
+2. execute
+   - materialize
+   - run

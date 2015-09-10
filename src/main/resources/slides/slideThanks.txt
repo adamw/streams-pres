@@ -1,0 +1,24 @@
+.___________. __    __       ___      .__   __.  __  ___    
+|           ||  |  |  |     /   \     |  \ |  | |  |/  /    
+`---|  |----`|  |__|  |    /  ^  \    |   \|  | |  '  /     
+    |  |     |   __   |   /  /_\  \   |  . `  | |    <      
+    |  |     |  |  |  |  /  _____  \  |  |\   | |  .  \     
+    |__|     |__|  |__| /__/     \__\ |__| \__| |__|\__\    
+                                                            
+          ____    ____  ______    __    __
+          \   \  /   / /  __  \  |  |  |  |
+           \   \/   / |  |  |  | |  |  |  |
+            \_    _/  |  |  |  | |  |  |  |
+              |  |    |  `--'  | |  `--'  |
+              |__|     \______/   \______/
+
+
+* http://akka.io
+
+* https://github.com/scalaz/scalaz-stream
+
+* https://github.com/adamw/streams-pres
+
+* https://softwaremill.com/comparing-akka-stream-scalaz-stream/
+
+* @adamwarski

@@ -1,0 +1,15 @@
+akka-stream:
+* akka-http
+* [slick](http://slick.typesafe.com)
+* [reactive streams](http://www.reactive-streams.org)
+* optimization
+
+scalaz-stream:
+* [http4s](http://www.http4s.org/)
+* [doobie](https://github.com/tpolecat/doobie)
+* [FS2: next-gen, scalaz-independent](https://github.com/scalaz/scalaz-stream/blob/topic/0.8-redesign/docs/guide.markdown)
+
+Other streaming libraries:
+* [monifu](https://github.com/monifu/monifu)
+* [Play iteratees](https://www.playframework.com/documentation/2.4.x/Iteratees)
+* [RxScala](https://github.com/ReactiveX/RxScala)

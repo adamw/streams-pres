@@ -1,0 +1,13 @@
+akka-stream:
+
+* implements reactive streams
+* uses Akka & actors heavily
+* dynamic push/pull
+  - demand flows opposite to data
+
+scalaz-stream:
+
+* functional
+* not really dependent on Scalaz except for Task
+* pull-based
+  - elements evaluated one-by-one
