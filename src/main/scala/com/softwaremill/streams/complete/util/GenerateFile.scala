@@ -1,4 +1,4 @@
-package com.softwaremill.streams.util
+package com.softwaremill.streams.complete.util
 
 import java.io.PrintWriter
 

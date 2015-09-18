@@ -1,11 +1,17 @@
-* common goal: compositionality
+akka-stream:
 
-* type-safe
+  /------\      /------\       /------\      /------\
+  |Source|->-->-| Flow |->-*->-| Flow |->-->-| Sink |
+  \------/      \------/       \------/      \------/
 
-1. create a blueprint
-   - graph
-   - process
+  => materialised to actors + each stage to a value
 
-2. execute
-   - materialize
-   - run
+scalaz-stream:
+
+  Process[F[_], T]
+  - Process0[T] = Process[Nothing, T]
+  - Process1[I, O]
+  - Sink[F[_], O] = Process[F, O => F[Unit]]
+
+  State machine: Await | Emit | Append | Halt
+  + driver

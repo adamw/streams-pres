@@ -1,9 +1,13 @@
-About me
+akka-stream:
 
-* coder @ [SoftwareMill](http://www.softwaremill.com)
+* implements reactive streams
+* uses Akka & actors heavily
+* dynamic push/pull
+  - demand flows opposite to data
 
-* open-source: MacWire, Supler, Envers, ElasticMQ, Veripacks
+scalaz-stream:
 
-* [blog](http://www.warski.org)
-
-* [twitter](@adamwarski)
+* functional
+* not really dependent on Scalaz except for Task
+* pull-based
+  - elements evaluated one-by-one

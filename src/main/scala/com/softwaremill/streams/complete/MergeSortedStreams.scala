@@ -1,21 +1,39 @@
-package com.softwaremill.streams
+package com.softwaremill.streams.complete
 
-import akka.stream.{Inlet, Attributes, FanInShape2}
-import akka.stream.scaladsl.FlexiMerge
-import org.scalacheck.{Prop, Gen, Properties}
+import akka.actor.ActorSystem
+import akka.stream._
+import akka.stream.scaladsl.FlowGraph.Implicits._
+import akka.stream.scaladsl.{FlexiMerge, FlowGraph, Sink, Source}
+import org.scalacheck.{Gen, Prop, Properties}
+
+import scala.concurrent.Await
+import scala.concurrent.duration._
+import scalaz.stream.{Process, Tee, tee}
 
 trait MergeSortedStreams {
   def merge[T: Ordering](l1: List[T], l2: List[T]): List[T]
 }
 
-//
-// SCALAZ
-//
+object AkkaStreamsMergeSortedStreams extends MergeSortedStreams {
+  def merge[T: Ordering](l1: List[T], l2: List[T]): List[T] = {
+    val out = Sink.fold[List[T], T](Nil) { case (l, e) => l.+:(e)}
 
-//
-// AKKA
-//
-class SortedMerge[T: Ordering] extends FlexiMerge[T, FanInShape2[T, T, T]](new FanInShape2("SortedMerge"), Attributes.name("SortedMerge")) {
+    val g = FlowGraph.closed(out) { implicit builder => sink =>
+      val merge = builder.add(new SortedMerge[T])
+
+      Source(l1) ~> merge.in0
+      Source(l2) ~> merge.in1
+                    merge.out ~> sink.inlet
+    }
+
+    implicit val system = ActorSystem()
+    implicit val mat = ActorMaterializer()
+    try Await.result(g.run(), 1.hour).reverse finally system.shutdown()
+  }
+}
+
+class SortedMerge[T: Ordering] extends FlexiMerge[T, FanInShape2[T, T, T]](
+  new FanInShape2("SortedMerge"), Attributes.name("SortedMerge")) {
 
   import akka.stream.scaladsl.FlexiMerge._
 
@@ -62,9 +80,23 @@ class SortedMerge[T: Ordering] extends FlexiMerge[T, FanInShape2[T, T, T]](new F
   }
 }
 
-//
-// RUNNER
-//
+object ScalazStreamsMergeSortedStreams extends MergeSortedStreams {
+  def merge[T: Ordering](l1: List[T], l2: List[T]): List[T] = {
+    val p1 = Process(l1: _*)
+    val p2 = Process(l2: _*)
+
+    def next(l: T, r: T): Tee[T, T, T] = if (implicitly[Ordering[T]].lt(l, r))
+      Process.emit(l) ++ nextL(r)
+    else
+      Process.emit(r) ++ nextR(l)
+
+    def nextR(l: T): Tee[T, T, T] = tee.receiveROr[T, T, T](Process.emit(l) ++ tee.passL)(next(l, _))
+    def nextL(r: T): Tee[T, T, T] = tee.receiveLOr[T, T, T](Process.emit(r) ++ tee.passR)(next(_, r))
+    def sortedMergeStart: Tee[T, T, T] = tee.receiveLOr[T, T, T](tee.passR)(nextR)
+
+    p1.tee(p2)(sortedMergeStart).toSource.runLog.run.toList
+  }
+}
 
 object MergeSortedStreamsRunner extends Properties("MergeSortedStreams") {
   val sortedList = Gen.listOf(Gen.choose(0, 20)).map(_.sorted)
@@ -79,6 +111,7 @@ object MergeSortedStreamsRunner extends Properties("MergeSortedStreams") {
     }
   }
 
-  //addPropertyFor("scalaz", ScalazStreamsMergeSortedStreams)
-  //addPropertyFor("akka", AkkaStreamsMergeSortedStreams)
+  addPropertyFor("scalaz", ScalazStreamsMergeSortedStreams)
+  addPropertyFor("akka", AkkaStreamsMergeSortedStreams)
 }
+

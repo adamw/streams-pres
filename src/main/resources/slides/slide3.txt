@@ -1,13 +1,11 @@
-akka-stream:
+* common goal: compositionality
 
-* implements reactive streams
-* uses Akka & actors heavily
-* dynamic push/pull
-  - demand flows opposite to data
+* type-safe
 
-scalaz-stream:
+1. create a blueprint
+   - graph
+   - process
 
-* functional
-* not really dependent on Scalaz except for Task
-* pull-based
-  - elements evaluated one-by-one
+2. execute
+   - materialize
+   - run
