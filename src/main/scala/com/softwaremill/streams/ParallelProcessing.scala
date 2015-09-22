@@ -1,17 +1,21 @@
 package com.softwaremill.streams
 
+import akka.actor.ActorSystem
 import akka.stream.scaladsl.FlexiRoute.{DemandFromAll, RouteLogic}
-import akka.stream.{Attributes, UniformFanOutShape}
-import akka.stream.scaladsl.FlexiRoute
+import akka.stream.scaladsl.FlowGraph.Implicits._
+import akka.stream.scaladsl._
+import akka.stream.{ActorMaterializer, Attributes, UniformFanOutShape}
 import com.softwaremill.streams.complete.util.Timed._
+
+import scala.concurrent.Await
+import scala.concurrent.duration._
+import scalaz.\/-
+import scalaz.concurrent.Task
+import scalaz.stream.{Process, async, wye}
 
 trait ParallelProcessing {
   def run(in: List[Int]): List[Int]
 }
-
-//
-// SCALAZ
-//
 
 //
 // AKKA
@@ -30,6 +34,10 @@ class SplitRoute[T](splitFn: T => Either[T, T]) extends FlexiRoute[T, UniformFan
     override def initialCompletionHandling = eagerClose
   }
 }
+
+//
+// SCALAZ
+//
 
 //
 // RUNNER

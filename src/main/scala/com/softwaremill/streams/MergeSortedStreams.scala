@@ -1,16 +1,18 @@
 package com.softwaremill.streams
 
-import akka.stream.{Inlet, Attributes, FanInShape2}
-import akka.stream.scaladsl.FlexiMerge
-import org.scalacheck.{Prop, Gen, Properties}
+import akka.actor.ActorSystem
+import akka.stream._
+import akka.stream.scaladsl.FlowGraph.Implicits._
+import akka.stream.scaladsl.{FlexiMerge, FlowGraph, Sink, Source}
+import org.scalacheck.{Gen, Prop, Properties}
+
+import scala.concurrent.Await
+import scala.concurrent.duration._
+import scalaz.stream.{Process, Tee, tee}
 
 trait MergeSortedStreams {
   def merge[T: Ordering](l1: List[T], l2: List[T]): List[T]
 }
-
-//
-// SCALAZ
-//
 
 //
 // AKKA
@@ -61,6 +63,10 @@ class SortedMerge[T: Ordering] extends FlexiMerge[T, FanInShape2[T, T, T]](new F
     }
   }
 }
+
+//
+// SCALAZ
+//
 
 //
 // RUNNER
