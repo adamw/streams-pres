@@ -5,21 +5,21 @@ import java.io.File
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.stream.io.Framing
-import akka.stream.io.Implicits._
 import akka.stream.scaladsl.{Keep, Sink, Source}
-import akka.stream.stage.{Context, StatefulStage, SyncDirective}
+import akka.stream.io.Implicits._
+import akka.stream.stage.{SyncDirective, Context, StatefulStage}
 import akka.util.ByteString
 import com.softwaremill.streams.complete.util.TestFiles
 import com.softwaremill.streams.complete.util.Timed._
 
-import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scalaz.stream.{io, text}
+import scala.concurrent.duration._
 
 trait TransferTransformFile {
   /**
-   * @return Number of bytes written
-   */
+    * @return Number of bytes written
+    */
   def run(from: File, to: File): Long
 }
 
@@ -43,7 +43,7 @@ object AkkaStreamsTransferTransformFile extends TransferTransformFile {
   }
 
   def shutdown() = {
-    system.shutdown()
+    system.terminate()
   }
 }
 
@@ -103,4 +103,5 @@ object TransferTransformFileRunner extends App {
 
   AkkaStreamsTransferTransformFile.shutdown()
 }
+
 
