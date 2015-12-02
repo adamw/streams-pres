@@ -6,7 +6,6 @@ import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.stream.io.Framing
 import akka.stream.scaladsl.{Keep, Sink, Source}
-import akka.stream.io.Implicits._
 import akka.stream.stage.{SyncDirective, Context, StatefulStage}
 import akka.util.ByteString
 import com.softwaremill.streams.complete.util.TestFiles

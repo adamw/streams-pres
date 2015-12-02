@@ -1,7 +1,7 @@
 package com.softwaremill.streams.complete
 
 import akka.actor.ActorSystem
-import akka.stream.stage.{OutHandler, InHandler, GraphStageLogic, GraphStage}
+import akka.stream.stage.{GraphStageLogic, GraphStage}
 import akka.stream._
 import akka.stream.scaladsl._
 import akka.stream.scaladsl.FlowGraph.Implicits._
@@ -29,9 +29,9 @@ object AkkaStreamsParallelProcessing extends ParallelProcessing {
       val f = Flow[Int].map { el => Thread.sleep(1000L); el * 2 }
 
       start ~> split.in
-               split.out0 ~> f ~> merge
-               split.out1 ~> f ~> merge
-                                  merge ~> sink
+      split.out0 ~> f ~> merge
+      split.out1 ~> f ~> merge
+      merge ~> sink
 
       ClosedShape
     }
@@ -52,49 +52,25 @@ class SplitStage[T](splitFn: T => Either[T, T]) extends GraphStage[FanOutShape2[
 
   override def createLogic(inheritedAttributes: Attributes) = new GraphStageLogic(shape) {
 
-    var pending: Option[(T, Outlet[T])] = None
-    var initialized = false
+    setHandler(in, ignoreTerminateInput)
+    setHandler(out0, eagerTerminateOutput)
+    setHandler(out1, eagerTerminateOutput)
 
-    setHandler(in, new InHandler {
-      override def onPush() = {
-        val elAndOut = splitFn(grab(in)).fold((_, out0), (_, out1))
-        pending = Some(elAndOut)
-        tryPush()
-      }
-
-      override def onUpstreamFinish() = {
-        if (pending.isEmpty) {
-          completeStage()
-        }
-      }
-    })
-
-    List(out0, out1).foreach {
-      setHandler(_, new OutHandler {
-        override def onPull() = {
-          if (!initialized) {
-            initialized = true
-            tryPull(in)
-          }
-
-          tryPush()
-        }
-      })
-    }
-
-    private def tryPush(): Unit = {
-      pending.foreach { case (el, out) =>
-        if (isAvailable(out)) {
-          push(out, el)
-          tryPull(in)
-          pending = None
-
-          if (isClosed(in)) {
-            completeStage()
-          }
+    def doRead(): Unit = {
+      if (isClosed(in)) {
+        completeStage()
+      } else {
+        setHandler(in, eagerTerminateInput)
+        read(in) { el =>
+          setHandler(in, ignoreTerminateInput)
+          splitFn(el).fold(doEmit(out0, _), doEmit(out1, _))
         }
       }
     }
+
+    def doEmit(out: Outlet[T], el: T): Unit = emit(out, el, doRead)
+
+    override def preStart() = doRead()
   }
 }
 
