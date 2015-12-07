@@ -6,7 +6,6 @@ import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.stream.io.Framing
 import akka.stream.scaladsl.{Keep, Sink, Source}
-import akka.stream.stage.{SyncDirective, Context, StatefulStage}
 import akka.util.ByteString
 import com.softwaremill.streams.complete.util.TestFiles
 import com.softwaremill.streams.complete.util.Timed._
@@ -33,7 +32,7 @@ object AkkaStreamsTransferTransformFile extends TransferTransformFile {
       .map(_.utf8String)
       .filter(!_.contains("#!@"))
       .map(_.replace("*", "0"))
-      .transform(() => new IntersperseStage("\n"))
+      .intersperse("\n")
       .map(ByteString(_))
       .toMat(Sink.file(to))(Keep.right)
       .run()
@@ -43,23 +42,6 @@ object AkkaStreamsTransferTransformFile extends TransferTransformFile {
 
   def shutdown() = {
     system.terminate()
-  }
-}
-
-class IntersperseStage[T](intersperseElement: T) extends StatefulStage[T, T] {
-  private var first = true
-
-  def initial = new State {
-    override def onPush(element: T, ctx: Context[T]): SyncDirective = {
-      val wasFirst = first
-      first = false
-
-      if (wasFirst) {
-        emit(List(element).iterator, ctx)
-      } else {
-        emit(List(intersperseElement, element).iterator, ctx)
-      }
-    }
   }
 }
 
@@ -102,5 +84,4 @@ object TransferTransformFileRunner extends App {
 
   AkkaStreamsTransferTransformFile.shutdown()
 }
-
 

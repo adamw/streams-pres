@@ -14,5 +14,7 @@
                                             *ScalaTimes*:
 
                                             * Weekly Scala Newsletter
-                                            * http://www.scalatimes.com/
-                                            * @scalatimes
+   *Scalar, Warsaw*:                        * http://www.scalatimes.com/
+   * 16th April 2016                        * @scalatimes
+   * Free-to-attend
+   * http://scalar-conf.com
