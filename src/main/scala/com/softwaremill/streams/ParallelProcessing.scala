@@ -4,7 +4,7 @@ import akka.actor.ActorSystem
 import akka.stream.stage.{GraphStageLogic, GraphStage}
 import akka.stream._
 import akka.stream.scaladsl._
-import akka.stream.scaladsl.FlowGraph.Implicits._
+import akka.stream.scaladsl.GraphDSL.Implicits._
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -39,14 +39,14 @@ class SplitStage[T](splitFn: T => Either[T, T]) extends GraphStage[FanOutShape2[
         completeStage()
       } else {
         setHandler(in, eagerTerminateInput)
-        read(in) { el =>
+        read(in)({ el =>
           setHandler(in, ignoreTerminateInput)
           splitFn(el).fold(doEmit(out0, _), doEmit(out1, _))
-        }
+        }, () => ())
       }
     }
 
-    def doEmit(out: Outlet[T], el: T): Unit = emit(out, el, doRead)
+    def doEmit(out: Outlet[T], el: T): Unit = emit(out, el, doRead _)
 
     override def preStart() = doRead()
   }

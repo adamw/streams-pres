@@ -2,8 +2,8 @@ package com.softwaremill.streams
 
 import akka.actor.ActorSystem
 import akka.stream._
-import akka.stream.scaladsl.{RunnableGraph, Sink, Source, FlowGraph}
-import akka.stream.scaladsl.FlowGraph.Implicits._
+import akka.stream.scaladsl.{RunnableGraph, Sink, Source, GraphDSL}
+import akka.stream.scaladsl.GraphDSL.Implicits._
 import akka.stream.stage.{InHandler, GraphStageLogic, GraphStage}
 import org.scalacheck.{Prop, Gen, Properties}
 
@@ -65,15 +65,10 @@ class SortedMerge[T: Ordering] extends GraphStage[FanInShape2[T, T, T]] {
         onFinish()
       } else {
         val previous = getHandler(in)
-        // This handled is only ever going to be used for the finish callback
-        setHandler(in, new InHandler {
-          override def onPush() = ???
-          override def onUpstreamFinish() = onFinish()
-        })
-        read(in) { t =>
+        read(in)({ t =>
           setHandler(in, previous)
           andThen(t)
-        }
+        }, onFinish)
       }
     }
   }

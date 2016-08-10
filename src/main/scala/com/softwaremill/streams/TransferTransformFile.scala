@@ -3,16 +3,15 @@ package com.softwaremill.streams
 import java.io.File
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
-import akka.stream.io.Framing
-import akka.stream.scaladsl.{Keep, Sink, Source}
+import akka.stream.scaladsl.{FileIO, Framing, Keep}
+import akka.stream.{ActorMaterializer, IOResult}
 import akka.util.ByteString
 import com.softwaremill.streams.complete.util.TestFiles
 import com.softwaremill.streams.complete.util.Timed._
 
+import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scalaz.stream.{io, text}
-import scala.concurrent.duration._
 
 trait TransferTransformFile {
   /**

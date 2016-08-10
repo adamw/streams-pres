@@ -3,16 +3,15 @@ package com.softwaremill.streams.complete
 import java.io.File
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
-import akka.stream.io.Framing
-import akka.stream.scaladsl.{Keep, Sink, Source}
+import akka.stream.scaladsl.{FileIO, Framing, Keep}
+import akka.stream.{ActorMaterializer, IOResult}
 import akka.util.ByteString
 import com.softwaremill.streams.complete.util.TestFiles
 import com.softwaremill.streams.complete.util.Timed._
 
+import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scalaz.stream.{io, text}
-import scala.concurrent.duration._
 
 trait TransferTransformFile {
   /**
@@ -27,17 +26,18 @@ object AkkaStreamsTransferTransformFile extends TransferTransformFile {
   override def run(from: File, to: File) = {
     implicit val mat = ActorMaterializer()
 
-    val r: Future[Long] = Source.file(from)
+    val r: Future[IOResult] = FileIO.fromPath(from.toPath)
       .via(Framing.delimiter(ByteString("\n"), 1048576))
       .map(_.utf8String)
       .filter(!_.contains("#!@"))
       .map(_.replace("*", "0"))
       .intersperse("\n")
       .map(ByteString(_))
-      .toMat(Sink.file(to))(Keep.right)
+      .async
+      .toMat(FileIO.toPath(to.toPath))(Keep.right)
       .run()
 
-    Await.result(r, 1.hour)
+    Await.result(r, 1.hour).count
   }
 
   def shutdown() = {
@@ -71,10 +71,10 @@ object TransferTransformFileRunner extends App {
   val tests = List(
     (ScalazStreamsTransferTransformFile, 10),
     (ScalazStreamsTransferTransformFile, 100),
-    (ScalazStreamsTransferTransformFile, 500),
+    //(ScalazStreamsTransferTransformFile, 500),
     (AkkaStreamsTransferTransformFile, 10),
-    (AkkaStreamsTransferTransformFile, 100),
-    (AkkaStreamsTransferTransformFile, 500)
+    (AkkaStreamsTransferTransformFile, 100)
+    //(AkkaStreamsTransferTransformFile, 500)
   )
 
   runTests(tests.map { case (ttf, sizeMB) =>
